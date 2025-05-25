@@ -110,7 +110,7 @@ export function MessageItem({ message, isOwnMessage, currentUserId }: MessageIte
                 <Heart className="w-3 h-3 mr-1 inline" />
                 Like
               </button>
-              {message.favorited_by.length > 0 && (
+              {message.favorited_by && message.favorited_by.length > 0 && (
                 <span className="text-xs text-gray-500">
                   {message.favorited_by.length} ❤️
                 </span>
