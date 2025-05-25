@@ -3,7 +3,10 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    // Construct an error object that includes the status
+    const error: any = new Error(`${res.status}: ${text}`);
+    error.status = res.status; // Attach status for easier access
+    throw error;
   }
 }
 
@@ -12,15 +15,27 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  console.log(`[API Request] ${method} ${url}`, data || '');
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: data ? { "Content-Type": "application/json" } : {},
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
 
-  await throwIfResNotOk(res);
-  return res;
+    // throwIfResNotOk will throw an error for non-ok responses,
+    // which will be caught by the catch block below.
+    await throwIfResNotOk(res);
+
+    console.log(`[API Response] ${method} ${url} - Status ${res.status}`);
+    return res;
+  } catch (error: any) {
+    // error.message here will include status and text from throwIfResNotOk
+    // or a network error message from fetch itself.
+    console.error(`[API Error] ${method} ${url} - Error: ${error.message}`);
+    throw error; // Re-throw the error to be handled by the caller
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

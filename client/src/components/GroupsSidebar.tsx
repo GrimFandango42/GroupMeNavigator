@@ -17,6 +17,9 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup, className = "" }
   const { data: groups = [], isLoading, error } = useQuery<GroupMeGroup[]>({
     queryKey: ['/api/groups'],
     refetchInterval: 30000, // Refresh every 30 seconds
+    onSuccess: (fetchedGroups) => {
+      console.log('[GroupsSidebar] Fetched groups:', fetchedGroups.length, 'groups');
+    },
   });
 
   const { data: status } = useQuery({
@@ -38,7 +41,8 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup, className = "" }
 
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date().getTime();
-    const messageTime = new Date(timestamp).getTime();
+    // Convert Unix timestamp (seconds) to milliseconds
+    const messageTime = new Date(Number(timestamp) * 1000).getTime();
     const diffInSeconds = Math.floor((now - messageTime) / 1000);
     
     if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
@@ -101,7 +105,10 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup, className = "" }
           filteredGroups.map((group) => (
             <div
               key={group.id}
-              onClick={() => onSelectGroup(group)}
+              onClick={() => {
+                console.log('[GroupsSidebar] Selected group:', group.id, group.name);
+                onSelectGroup(group);
+              }}
               className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
                 selectedGroupId === group.id ? 'bg-blue-50 border-l-4 border-l-groupme-blue' : ''
               }`}

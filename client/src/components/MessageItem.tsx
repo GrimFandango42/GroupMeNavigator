@@ -18,7 +18,8 @@ export function MessageItem({ message, isOwnMessage, currentUserId }: MessageIte
   };
 
   const formatTime = (timestamp: string) => {
-    return format(new Date(timestamp), 'h:mm a');
+    // Assuming timestamp is Unix time in seconds, convert to milliseconds
+    return format(new Date(Number(timestamp) * 1000), 'h:mm a');
   };
 
   const getGradientClass = (name: string) => {

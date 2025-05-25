@@ -4,23 +4,24 @@ A custom UI layer for GroupMe that enables a gradual transition away from the pl
 
 ## 🎯 Project Vision
 
-This application implements a three-phase strategy to gradually migrate your group chat away from GroupMe:
+This application implements a four-phase strategy to gradually migrate your group chat away from GroupMe:
 
-### Phase 1: API Bridge Mode (Current) ✅
-- Custom UI that connects to GroupMe's API
-- You use the bridge app while others continue using standard GroupMe
-- All messages sync bidirectionally in real-time
-- No database required - everything flows through GroupMe's servers
+### Phase 1: Basic GroupMe client (Current) ✅
+- Real-time view of GroupMe chats
+- Ability to switch between different GroupMe chats
+- Display latest messages from GroupMe
 
-### Phase 2: Hybrid Groups (Planned)
-- Create custom chat groups within the bridge app
-- Invite friends one-by-one to join the custom platform
-- Database storage for custom conversations
-- Gradual user migration as people adopt the new interface
+### Phase 2: Reply functionality (Planned)
+- Enable replying to GroupMe messages from the custom UI
 
-### Phase 3: Full Migration (Future)
-- Complete transition to custom chat platform
-- Full database capabilities and custom features
+### Phase 3: Backend for new group chats (Planned)
+- Develop backend infrastructure for creating new group chats
+- Invite friends to join these new, custom groups
+- Messages in these new groups will be stored on our own backend
+
+### Phase 4: Full Custom GroupMe Alternative (Future)
+- Expand the application to be a full-fledged alternative to GroupMe
+- Develop both frontend and backend components for a complete custom chat experience
 - Independent of GroupMe infrastructure
 - Customizable features tailored to your group's needs
 
@@ -122,18 +123,27 @@ The bridge maintains seamless synchronization:
 
 ## 🚧 Development Roadmap
 
-### Phase 2 Features (Next)
-- [ ] Custom group creation
-- [ ] Database integration for custom chats
-- [ ] User invitation system
-- [ ] Hybrid messaging (GroupMe + custom)
+### Phase 1 Features (Current)
+- [x] Real-time GroupMe chat view
+- [x] Switch between chats
+- [x] Display latest messages
 
-### Phase 3 Features (Future)
-- [ ] Complete GroupMe independence
-- [ ] Advanced group management
+### Phase 2 Features (Next)
+- [ ] Implement reply functionality to GroupMe messages from custom UI
+
+### Phase 3 Features (Planned)
+- [ ] Backend development for custom group chats
+- [ ] User invitation system for new groups
+- [ ] Database integration for custom chat storage
+
+### Phase 4 Features (Future)
+- [ ] Full frontend development for custom chat experience
+- [ ] Full backend development for custom chat platform
+- [ ] Advanced group management features
 - [ ] File sharing and media support
 - [ ] Custom notification settings
 - [ ] Group customization features
+- [ ] Complete GroupMe independence
 
 ## 🤝 Contributing to the Transition
 

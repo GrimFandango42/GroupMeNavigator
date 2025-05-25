@@ -35,6 +35,9 @@ export function ChatArea({ group, onToggleSidebar }: ChatAreaProps) {
     queryKey: ['/api/groups', group?.id, 'messages'],
     enabled: !!group?.id,
     refetchInterval: 5000, // Poll for new messages every 5 seconds
+    onSuccess: (fetchedMessages) => {
+      console.log('[ChatArea] Fetched messages for group', group?.id, ':', fetchedMessages.length, 'messages');
+    },
   });
 
   const { isConnected, lastMessage } = useWebSocket(group?.id);
@@ -67,6 +70,11 @@ export function ChatArea({ group, onToggleSidebar }: ChatAreaProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/groups', group?.id, 'messages'] });
     }
   }, [lastMessage, group?.id, queryClient]);
+
+  // Log group change
+  useEffect(() => {
+    console.log('[ChatArea] Group changed to:', group?.id, group?.name);
+  }, [group]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
