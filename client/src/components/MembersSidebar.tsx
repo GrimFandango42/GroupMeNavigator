@@ -35,11 +35,13 @@ export function MembersSidebar({ group, className = "" }: MembersSidebarProps) {
 
   if (!group) {
     return (
-      <div className={`hidden lg:flex lg:w-64 bg-white border-l border-gray-200 flex-col ${className}`}>
+      // Removed hidden lg:flex lg:w-64. Base classes for flex-col structure.
+      // Visibility and width are now primarily controlled by chat.tsx via `className` prop.
+      <div className={`flex flex-col bg-white ${className}`}>
         <div className="p-4 border-b border-gray-200">
           <h3 className="font-semibold text-gray-900">Members</h3>
         </div>
-        <div className="flex-1 flex items-center justify-center text-gray-500">
+        <div className="flex-1 flex items-center justify-center text-gray-500 p-4 text-center">
           Select a group to view members
         </div>
       </div>
@@ -51,7 +53,9 @@ export function MembersSidebar({ group, className = "" }: MembersSidebarProps) {
   const otherMembers = group.members.filter(member => member.user_id !== currentUser?.id);
 
   return (
-    <div className={`hidden lg:flex lg:w-64 bg-white border-l border-gray-200 flex-col ${className}`}>
+    // Removed hidden lg:flex lg:w-64. Base classes for flex-col structure.
+    // Visibility and width are now primarily controlled by chat.tsx via `className` prop.
+    <div className={`flex flex-col bg-white ${className}`}>
       {/* Members Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
