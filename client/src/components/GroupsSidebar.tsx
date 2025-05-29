@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import debounce from 'lodash.debounce';
 import { GroupMeAPI } from "@/lib/groupme-api";
 import { Input } from "@/components/ui/input";
-import { Search, Wifi, WifiOff, Info } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Import Alert components
+import { Search, Wifi, WifiOff, Info, Loader2 } from "lucide-react"; // Import Loader2
 import type { GroupMeGroup } from "@shared/schema";
+import { GroupListItem } from './GroupListItem';
 
 interface GroupsSidebarProps {
   selectedGroupId?: string;
@@ -12,7 +15,8 @@ interface GroupsSidebarProps {
 }
 
 export function GroupsSidebar({ selectedGroupId, onSelectGroup, className = "" }: GroupsSidebarProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [inputValue, setInputValue] = useState(""); // For immediate input feedback
+  const [searchQuery, setSearchQuery] = useState(""); // For debounced search query
 
   const { data: groups = [], isLoading, error } = useQuery<GroupMeGroup[]>({
     queryKey: ['/api/groups'],
@@ -31,15 +35,28 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup, className = "" }
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const generateInitials = (name: string) => {
+  // Debounce the search query update
+  const debouncedSetSearchQuery = useMemo(
+    () => debounce(setSearchQuery, 300),
+    [setSearchQuery] // searchQuery is not needed here, only the setter
+  );
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSetSearchQuery.cancel();
+    };
+  }, [debouncedSetSearchQuery]);
+
+  const generateInitials = useCallback((name: string) => {
     return name.split(' ')
       .map(word => word[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
-  };
+  }, []);
 
-  const formatTimeAgo = (timestamp: string) => {
+  const formatTimeAgo = useCallback((timestamp: string) => {
     const now = new Date().getTime();
     // Convert Unix timestamp (seconds) to milliseconds
     const messageTime = new Date(Number(timestamp) * 1000).getTime();
@@ -49,7 +66,7 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup, className = "" }
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  };
+  }, []);
 
   return (
     <div className={`hidden md:flex md:w-80 bg-white border-r border-gray-200 flex-col ${className}`}>
@@ -80,8 +97,12 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup, className = "" }
           <Input
             type="text"
             placeholder="Search groups..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={inputValue}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              setInputValue(newValue);
+              debouncedSetSearchQuery(newValue);
+            }}
             className="pl-10"
           />
           <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
@@ -91,11 +112,19 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup, className = "" }
       {/* Groups List */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="p-4 text-center text-gray-500">Loading groups...</div>
+          <div className="p-4 flex flex-col items-center justify-center text-gray-500">
+            <Loader2 className="h-8 w-8 animate-spin mb-2" />
+            <span>Loading groups...</span>
+          </div>
         ) : error ? (
-          <div className="p-4 text-center text-red-500">
-            <Info className="w-6 h-6 mx-auto mb-2" />
-            Failed to load groups. Check your GroupMe API token.
+          <div className="p-4">
+            <Alert variant="destructive">
+              <Info className="h-4 w-4" /> {/* Standard icon size for Alert */}
+              <AlertTitle>Error Loading Groups</AlertTitle>
+              <AlertDescription>
+                Failed to load groups. Check your GroupMe API token or network connection.
+              </AlertDescription>
+            </Alert>
           </div>
         ) : filteredGroups.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
@@ -103,49 +132,14 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup, className = "" }
           </div>
         ) : (
           filteredGroups.map((group) => (
-            <div
+            <GroupListItem
               key={group.id}
-              onClick={() => {
-                console.log('[GroupsSidebar] Selected group:', group.id, group.name);
-                onSelectGroup(group);
-              }}
-              className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
-                selectedGroupId === group.id ? 'bg-blue-50 border-l-4 border-l-groupme-blue' : ''
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                {/* Group avatar */}
-                <div className="w-12 h-12 bg-gradient-to-br from-groupme-blue to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
-                  {group.image_url ? (
-                    <img src={group.image_url} alt={group.name} className="w-full h-full rounded-lg object-cover" />
-                  ) : (
-                    generateInitials(group.name)
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 truncate">{group.name}</h3>
-                  {group.messages.preview ? (
-                    <>
-                      <p className="text-sm text-gray-500 truncate">
-                        {group.messages.preview.nickname}: {group.messages.preview.text}
-                      </p>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-xs text-gray-400">
-                          {formatTimeAgo(group.messages.last_message_created_at)}
-                        </span>
-                        {group.messages.count > 0 && (
-                          <span className="bg-groupme-blue text-white text-xs rounded-full px-2 py-1">
-                            {group.messages.count > 99 ? '99+' : group.messages.count}
-                          </span>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-sm text-gray-500">No messages yet</p>
-                  )}
-                </div>
-              </div>
-            </div>
+              group={group}
+              isSelected={selectedGroupId === group.id}
+              onSelectGroup={onSelectGroup} // onSelectGroup is passed from parent, assumed stable or memoized there
+              generateInitials={generateInitials}
+              formatTimeAgo={formatTimeAgo}
+            />
           ))
         )}
       </div>
